@@ -13,18 +13,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        
+        uses: actions/checkout@v4  # Correct usage of `uses`
+
       - name: Install TruffleHog
         run: |
-          pip install trufflehog
+          pip install trufflehog  # Correct usage of `run`
 
       - name: Run TruffleHog secret scanner
         run: |
-          trufflehog --json https://github.com/${{ github.repository }} > trufflehog-output.json
-          
+          trufflehog --json https://github.com/${{ github.repository }} > trufflehog-output.json  # Correct usage of `run`
+
       - name: Upload TruffleHog report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4  # Correct usage of `uses`
         with:
           name: trufflehog-report
           path: trufflehog-output.json
