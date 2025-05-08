@@ -1,0 +1,66 @@
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '37 6 * * 0'
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - language: actions
+          build-mode: none
+        - language: javascript-typescript
+          build-mode: none
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+
+    - if: matrix.build-mode == 'manual'
+      shell: bash
+      run: |
+        echo 'Manual build step needed, add your build commands here.'
+        exit 1
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+        output: codeql-sarif
+
+    # Convert SARIF to HTML report
+    - name: Install SARIF-to-HTML converter
+      run: npm install -g @microsoft/sarif-tools
+
+    - name: Convert SARIF to HTML
+      run: |
+        mkdir report
+        convert-sarif -i codeql-sarif/results.sarif -o report/codeql-report-${{ matrix.language }}.html
+
+    - name: Upload HTML Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: codeql-html-report-${{ matrix.language }}
+        path: report/codeql-report-${{ matrix.language }}.html
+
